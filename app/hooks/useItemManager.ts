@@ -32,6 +32,7 @@ const ownItemsSubscriptionName = 'ownItems';
  */
 export function useItemManager(userId = 'SYNC_DISABLED') {
   const realm = useRealm();
+  console.log('sync session: ', realm.syncSession);
   const user = useUser();
 
   // This state will be used to toggle between showing all items and only showing the current user's items
@@ -116,25 +117,27 @@ export function useItemManager(userId = 'SYNC_DISABLED') {
   }, [showAll, setShowAll]);
 
   useEffect(() => {
-    // This effect will initialize the subscription to the items collection
-    // By default it will filter out all items that do not belong to the current user
-    // If the user toggles the switch to show all items, the subscription will be updated to show all items
-    // The old subscription will be removed and the new subscription will be added
-    // This allows for tracking the state of the toggle switch by the name of the subscription
-    if (showAll) {
-      realm.subscriptions.update(mutableSubs => {
-        mutableSubs.removeByName(ownItemsSubscriptionName);
-        mutableSubs.add(realm.objects(Item), {name: itemSubscriptionName});
-      });
-    } else {
-      realm.subscriptions.update(mutableSubs => {
-        mutableSubs.removeByName(itemSubscriptionName);
-        mutableSubs.add(
-          realm.objects(Item).filtered(`owner_id == "${user?.id}"`),
-          {name: ownItemsSubscriptionName},
-        );
-      });
-    }
+    // if (realm.syncSession) {
+    //   // This effect will initialize the subscription to the items collection
+    //   // By default it will filter out all items that do not belong to the current user
+    //   // If the user toggles the switch to show all items, the subscription will be updated to show all items
+    //   // The old subscription will be removed and the new subscription will be added
+    //   // This allows for tracking the state of the toggle switch by the name of the subscription
+    //   if (showAll) {
+    //     realm.subscriptions.update(mutableSubs => {
+    //       mutableSubs.removeByName(ownItemsSubscriptionName);
+    //       mutableSubs.add(realm.objects(Item), {name: itemSubscriptionName});
+    //     });
+    //   } else {
+    //     realm.subscriptions.update(mutableSubs => {
+    //       mutableSubs.removeByName(itemSubscriptionName);
+    //       mutableSubs.add(
+    //         realm.objects(Item).filtered(`owner_id == "${user?.id}"`),
+    //         {name: ownItemsSubscriptionName},
+    //       );
+    //     });
+    //   }
+    // }
   }, [showAll, user, realm]);
 
   return {

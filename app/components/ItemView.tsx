@@ -16,12 +16,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-import React, {memo} from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 
 import type {Item} from '../models/Item';
 import {colors} from '../styles/colors';
-import {useUser} from '@realm/react';
+import {useRealm, useUser} from '@realm/react';
 
 type ItemProps = {
   item: Item;
@@ -34,6 +34,19 @@ type ItemProps = {
  */
 export const ItemView = memo<ItemProps>(({item, onToggleStatus, onDelete}) => {
   const user = useUser();
+  const realm = useRealm();
+  const [, setSummary] = useState(item.summary);
+
+  const writeNewSummary = useCallback(
+    (newSummary: string) => {
+      realm.write(() => {
+        item.summary = newSummary;
+      });
+
+      setSummary(newSummary);
+    },
+    [item, realm, setSummary],
+  );
 
   return (
     <View style={[styles.task, item.isComplete && styles.taskCompleted]}>
@@ -47,14 +60,15 @@ export const ItemView = memo<ItemProps>(({item, onToggleStatus, onDelete}) => {
       </Pressable>
       <View style={styles.itemContainer}>
         <View style={styles.descriptionContainer}>
-          <Text
+          <TextInput
             numberOfLines={1}
             style={[
               styles.description,
               item.isComplete && styles.descriptionCompleted,
-            ]}>
-            {item.summary}
-          </Text>
+            ]}
+            value={item.summary}
+            onChangeText={v => writeNewSummary(v)}
+          />
         </View>
       </View>
       <View style={[styles.ownershipContainer]}>
@@ -106,6 +120,8 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 15,
+    height: 50,
+    borderWidth: 0,
     color: colors.grayDark,
   },
   descriptionCompleted: {

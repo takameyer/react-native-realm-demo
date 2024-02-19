@@ -23,6 +23,7 @@ import {AppProvider, RealmProvider, UserProvider} from '@realm/react';
 
 import {Loading} from './components/Loading';
 import {LoginScreen} from './screens/LoginScreen';
+import {Item} from './models/Item';
 import {ItemScreen} from './screens/ItemScreen';
 import {colors} from './styles/colors';
 import {schemas} from './models';
@@ -53,6 +54,13 @@ export function App({appId}: AppSyncProps) {
             schema={schemas}
             sync={{
               flexible: true,
+              // To sync data to the device, we need to subscribe to our Items.
+              initialSubscriptions: {
+                update: (mutableSubs, realm) => {
+                  mutableSubs.add(realm.objects(Item), {name: 'items'});
+                },
+                rerunOnOpen: false,
+              },
               // We can specify the behavior when opening a Realm for the first time
               // (`newRealmFileBehavior`) and for subsequent ones (`existingRealmFileBehavior`).
               // If the user has logged in at least 1 time before, the Realm and its data will
